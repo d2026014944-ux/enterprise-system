@@ -33,6 +33,7 @@ model User {
   sessions      Session[]
   auditLogs     AuditLog[]
   apiKeys       ApiKey[]
+  tenantMembers TenantMember[]
 
   @@map("users")
   @@index([email])
