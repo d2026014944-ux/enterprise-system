@@ -8,7 +8,7 @@
  * Security: Never expose service_role key to the client.
  */
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/server';
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
