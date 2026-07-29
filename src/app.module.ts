@@ -33,6 +33,7 @@ import {
 import { InfrastructureModule } from '@infrastructure/infrastructure.module';
 import { SecurityModule } from '@security/security.module';
 import { ObservabilityModule } from '@observability/index';
+import { PresentationModule } from './presentation/presentation.module';
 
 // ─── Middleware ────────────────────────────────────────────
 import { RequestLoggerMiddleware } from '@observability/logging/request-logger.middleware';
@@ -61,6 +62,9 @@ import { RequestLoggerMiddleware } from '@observability/logging/request-logger.m
 
     // ── Observability (Logging, Metrics, Tracing, Health) ──
     ObservabilityModule,
+
+    // ── Presentation (Controllers, DTOs) ──────────────
+    PresentationModule,
 
     // ── Feature Modules ────────────────────────────────
     // Import feature modules here as they are created.
