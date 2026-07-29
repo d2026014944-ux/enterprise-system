@@ -1,0 +1,79 @@
+# ─────────────────────────────────────────────────────────────
+# Kustomize Overlay — Development
+#
+# Overrides:
+#   - 1 replica (cost saving)
+#   - Debug logging
+#   - No HPA (fixed replicas)
+#   - Relaxed resource limits
+#   - Local ingress
+# ─────────────────────────────────────────────────────────────
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+# Remove HPA in dev (fixed 1 replica)
+patches:
+  # Scale down to 1 replica
+  - target:
+      kind: Deployment
+      name: enterprise-system
+    patch: |
+      - op: replace
+        path: /spec/replicas
+        value: 1
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: 100m
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: 128Mi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: 500m
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 256Mi
+
+  # Override configmap for dev
+  - target:
+      kind: ConfigMap
+      name: enterprise-system-config
+    patch: |
+      - op: replace
+        path: /data/NODE_ENV
+        value: "development"
+      - op: replace
+        path: /data/LOG_LEVEL
+        value: "debug"
+      - op: replace
+        path: /data/CORS_ORIGINS
+        value: "*"
+
+  # Local ingress (no TLS)
+  - target:
+      kind: Ingress
+      name: enterprise-system
+    patch: |
+      - op: replace
+        path: /metadata/annotations/nginx.ingress.kubernetes.io~1ssl-redirect
+        value: "false"
+      - op: replace
+        path: /metadata/annotations/nginx.ingress.kubernetes.io~1force-ssl-redirect
+        value: "false"
+      - op: replace
+        path: /spec/rules/0/host
+        value: "api.enterprise.local"
+      - op: remove
+        path: /spec/tls
+
+# Remove HPA and PDB in dev
+# (not needed for single-replica dev environment)
+
+commonLabels:
+  environment: dev
+
+namePrefix: dev-

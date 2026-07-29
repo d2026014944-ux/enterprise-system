@@ -1,0 +1,75 @@
+# ─────────────────────────────────────────────────────────────
+# Kustomize Overlay — Production
+#
+# Overrides:
+#   - 5 replicas (higher baseline than base)
+#   - Production config
+#   - Higher resource limits
+#   - Production ingress with TLS
+# ─────────────────────────────────────────────────────────────
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+patches:
+  # Scale up to 5 replicas
+  - target:
+      kind: Deployment
+      name: enterprise-system
+    patch: |
+      - op: replace
+        path: /spec/replicas
+        value: 5
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: 500m
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: 512Mi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: "2"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 1Gi
+
+  # Update HPA for production
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: enterprise-system
+    patch: |
+      - op: replace
+        path: /spec/minReplicas
+        value: 5
+      - op: replace
+        path: /spec/maxReplicas
+        value: 50
+
+  # Update PDB for production
+  - target:
+      kind: PodDisruptionBudget
+      name: enterprise-system
+    patch: |
+      - op: replace
+        path: /spec/minAvailable
+        value: 3
+
+  # Production config
+  - target:
+      kind: ConfigMap
+      name: enterprise-system-config
+    patch: |
+      - op: replace
+        path: /data/NODE_ENV
+        value: "production"
+      - op: replace
+        path: /data/LOG_LEVEL
+        value: "warn"
+
+commonLabels:
+  environment: prod
+
+namePrefix: prod-

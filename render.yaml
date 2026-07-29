@@ -1,0 +1,56 @@
+# ─────────────────────────────────────────────────────────────
+# Render.com — Blueprint Deployment
+# ─────────────────────────────────────────────────────────────
+# Deploy: connect your GitHub repo → Render auto-detects this file
+# Free tier: Web Service with cold starts after 15 min inactivity
+# ─────────────────────────────────────────────────────────────
+
+services:
+  - type: web
+    name: enterprise-system
+    runtime: node
+    plan: free
+    region: oregon  # or frankfurt, singapore
+    branch: main
+    rootDir: .
+
+    buildCommand: |
+      npm install -g pnpm &&
+      pnpm install --frozen-lockfile &&
+      npx prisma generate &&
+      npx nest build
+
+    startCommand: |
+      npx prisma migrate deploy &&
+      node dist/main.js
+
+    healthCheckPath: /api/v1/health
+    healthCheckTimeout: 30
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DATABASE_URL
+        sync: false  # Set manually in Render dashboard
+      - key: DATABASE_SSL
+        value: "true"
+      - key: DATABASE_SSL_REJECT_UNAUTHORIZED
+        value: "false"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_EXPIRATION
+        value: 15m
+      - key: JWT_REFRESH_EXPIRATION
+        value: 7d
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: LOG_LEVEL
+        value: info
+      - key: GLOBAL_PREFIX
+        value: api/v1
+      - key: SHUTDOWN_TIMEOUT_MS
+        value: 10000

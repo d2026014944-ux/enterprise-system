@@ -1,0 +1,20 @@
+# ─────────────────────────────────────────────────────────────
+# Kubernetes PDB — Pod Disruption Budget
+#
+# Ensures at least 2 pods are always available during:
+# - Node drains
+# - Cluster upgrades
+# - Voluntary disruptions
+# ─────────────────────────────────────────────────────────────
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: enterprise-system
+  labels:
+    app: enterprise-system
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: enterprise-system

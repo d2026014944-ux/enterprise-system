@@ -1,0 +1,56 @@
+# ─────────────────────────────────────────────────────────────
+# Docker Ignore
+# ─────────────────────────────────────────────────────────────
+
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build output
+dist
+coverage
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Docker (don't send Docker context to Docker context)
+docker-compose*.yml
+Dockerfile
+.dockerignore
+
+# Documentation
+README.md
+docs
+*.md
+
+# Test files
+test
+**/*.spec.ts
+**/*.test.ts
+**/*.e2e-spec.ts
+
+# CI/CD
+.github
+.gitlab-ci.yml
+Jenkinsfile
+
+# Kubernetes
+k8s
+kubernetes

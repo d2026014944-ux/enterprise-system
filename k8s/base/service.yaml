@@ -1,0 +1,19 @@
+# ─────────────────────────────────────────────────────────────
+# Kubernetes Service — ClusterIP
+# ─────────────────────────────────────────────────────────────
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: enterprise-system
+  labels:
+    app: enterprise-system
+spec:
+  type: ClusterIP
+  selector:
+    app: enterprise-system
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

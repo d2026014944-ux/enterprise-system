@@ -1,0 +1,19 @@
+# ─────────────────────────────────────────────────────────────
+# Kustomize Base — Enterprise System
+# ─────────────────────────────────────────────────────────────
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - deployment.yaml
+  - service.yaml
+  - configmap.yaml
+  - secret.yaml
+  - hpa.yaml
+  - pdb.yaml
+  - ingress.yaml
+
+commonLabels:
+  app.kubernetes.io/name: enterprise-system
+  app.kubernetes.io/managed-by: kustomize

@@ -1,0 +1,146 @@
+# ─────────────────────────────────────────────────────────────
+# Docker Compose — Development Environment
+#
+# Services:
+#   - app        : NestJS application
+#   - postgres   : PostgreSQL 16
+#   - redis      : Redis 7 (cache + queues)
+#   - jaeger     : Jaeger UI (distributed tracing)
+#   - prometheus : Prometheus (metrics)
+#   - grafana    : Grafana (dashboards)
+# ─────────────────────────────────────────────────────────────
+
+version: "3.9"
+
+x-common-env: &common-env
+  NODE_ENV: development
+  DATABASE_URL: postgresql://postgres:postgres@postgres:5432/enterprise?schema=public
+  REDIS_URL: redis://redis:6379
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  JWT_SECRET: dev-jwt-secret-change-in-production
+  JWT_EXPIRATION: 15m
+  JWT_REFRESH_EXPIRATION: 7d
+  LOG_LEVEL: debug
+  CORS_ORIGINS: http://localhost:3000,http://localhost:5173
+
+services:
+  # ── Application ──────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deps
+    ports:
+      - "3000:3000"
+      - "9229:9229" # Node.js debugger
+    environment:
+      <<: *common-env
+      PORT: 3000
+    volumes:
+      - ./src:/app/src:cached
+      - ./prisma:/app/prisma:cached
+    command: >
+      sh -c "npx prisma generate &&
+             npx prisma migrate deploy &&
+             npx nest start --watch --debug 0.0.0.0:9229"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - enterprise
+    restart: unless-stopped
+
+  # ── PostgreSQL ────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: enterprise
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - enterprise
+    restart: unless-stopped
+
+  # ── Redis ────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - enterprise
+    restart: unless-stopped
+
+  # ── Jaeger (Distributed Tracing) ─────────────────────────
+  jaeger:
+    image: jaegertracing/all-in-one:1.53
+    ports:
+      - "16686:16686" # UI
+      - "14268:14268" # Collector
+      - "6831:6831/udp" # Agent
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    networks:
+      - enterprise
+    restart: unless-stopped
+
+  # ── Prometheus (Metrics) ─────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.49.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=7d"
+    networks:
+      - enterprise
+    restart: unless-stopped
+
+  # ── Grafana (Dashboards) ────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.3.1
+    ports:
+      - "4000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - enterprise
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  enterprise:
+    driver: bridge
