@@ -13,6 +13,20 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
 
+export class ConcurrencyConflictError extends Error {
+  constructor(entity: string, id: string) {
+    super(`Concurrent modification detected on ${entity} (${id}). Please retry.`);
+    this.name = 'ConcurrencyConflictError';
+  }
+}
+
+export class DatabaseError extends Error {
+  constructor(message: string, public readonly cause?: unknown) {
+    super(message);
+    this.name = 'DatabaseError';
+  }
+}
+
 @Injectable()
 export class PrismaService
   extends PrismaClient
