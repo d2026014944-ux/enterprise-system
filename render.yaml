@@ -10,15 +10,14 @@ services:
     name: enterprise-system
     runtime: node
     plan: free
-    region: oregon  # or frankfurt, singapore
+    region: oregon
     branch: main
     rootDir: .
 
     buildCommand: |
-      npm install -g pnpm &&
-      pnpm install --frozen-lockfile &&
+      npm install &&
       npx prisma generate &&
-      npx nest build
+      npm run build
 
     startCommand: |
       npx prisma migrate deploy &&
@@ -33,11 +32,17 @@ services:
       - key: PORT
         value: 3000
       - key: DATABASE_URL
-        sync: false  # Set manually in Render dashboard
+        sync: false
       - key: DATABASE_SSL
         value: "true"
       - key: DATABASE_SSL_REJECT_UNAUTHORIZED
         value: "false"
+      - key: SUPABASE_URL
+        value: https://vmxubssgrfzizlyqmkfx.supabase.co
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: SUPABASE_JWKS_URL
+        value: https://vmxubssgrfzizlyqmkfx.supabase.co/auth/v1/.well-known/jwks.json
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET
