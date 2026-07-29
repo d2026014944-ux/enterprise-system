@@ -24,7 +24,7 @@ import {
   ValidationArguments,
 } from 'class-validator';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@infrastructure/prisma/prisma.service';
+import { PrismaService } from '@infrastructure/database/prisma.service';
 
 /**
  * Validator constraint that checks uniqueness in the database.

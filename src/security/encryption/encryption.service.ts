@@ -44,7 +44,8 @@ export class EncryptionService {
   private static readonly ALGORITHM = 'aes-256-gcm';
   private static readonly IV_LENGTH = 12; // 96 bits (recommended for GCM)
   private static readonly TAG_LENGTH = 16; // 128 bits
-  private static readonly SALT_LENGTH = 32;
+  // SALT_LENGTH is used internally by crypto.scrypt
+  // private static readonly SALT_LENGTH = 32;
   private static readonly KEY_LENGTH = 32; // 256 bits
 
   private readonly keys: EncryptionKey[] = [];

@@ -13,7 +13,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { ErrorCode } from '../../domain/common/result';
 
 export interface JwtPayload {
@@ -106,13 +106,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     // 4. Build authenticated user context
     const roles = user.roles.map((ur) => ur.role.name);
-    const permissions = user.roles.flatMap((ur) => {
+    const permissions = user.roles.flatMap((ur: any) => {
       const perms = ur.role.permissions;
       return Array.isArray(perms) ? (perms as string[]) : [];
     });
 
     // Deduplicate permissions
-    const uniquePermissions = [...new Set(permissions)];
+    const uniquePermissions = [...new Set(permissions)] as string[];
 
     return {
       id: user.id,

@@ -19,7 +19,7 @@ import {
 } from '@nestjs/terminus';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Public } from '../../../security/authentication/public.decorator';
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { PrismaService } from '../../../infrastructure/database/prisma.service';
 
 @ApiTags('Health')
 @Controller('health')

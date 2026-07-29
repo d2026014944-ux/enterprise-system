@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { SecurityModule } from '../security/security.module';
-import { PrismaService } from '../infrastructure/prisma/prisma.service';
+import { PrismaService } from '../infrastructure/database/prisma.service';
 
 // Controllers
 import { AuthController } from './rest/controllers/auth.controller';

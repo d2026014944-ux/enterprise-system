@@ -18,7 +18,7 @@ import { RolesGuard } from './authorization/roles.guard';
 import { PermissionsGuard } from './authorization/permissions.guard';
 import { EncryptionService } from './encryption/encryption.service';
 import { ThrottlerGuard } from './rate-limiting/throttler.guard';
-import { PrismaService } from '../infrastructure/prisma/prisma.service';
+import { PrismaService } from '../infrastructure/database/prisma.service';
 
 /**
  * APP_GUARD token for registering global guards.

@@ -21,7 +21,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
 import * as bcrypt from 'bcryptjs';
-import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { ErrorCode, createError } from '../../domain/common/result';
 
 export interface TokenPair {
