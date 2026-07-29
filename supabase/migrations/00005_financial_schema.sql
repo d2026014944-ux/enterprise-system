@@ -63,7 +63,7 @@ CREATE INDEX idx_account_status ON public.accounts (org_id) WHERE status = 'acti
 -- RLS: Users can only see accounts in their org
 ALTER TABLE public.accounts ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "accounts_select_org"
+CREATE OR REPLACE POLICY "accounts_select_org"
   ON public.accounts
   FOR SELECT
   TO authenticated
@@ -73,7 +73,7 @@ CREATE POLICY "accounts_select_org"
   );
 
 -- Only admins/owners/billing can create accounts
-CREATE POLICY "accounts_insert_admin"
+CREATE OR REPLACE POLICY "accounts_insert_admin"
   ON public.accounts
   FOR INSERT
   TO authenticated
@@ -89,7 +89,7 @@ CREATE POLICY "accounts_insert_admin"
   );
 
 -- Balance can ONLY be updated via the ledger function (SECURITY DEFINER)
-CREATE POLICY "accounts_update_no_direct"
+CREATE OR REPLACE POLICY "accounts_update_no_direct"
   ON public.accounts
   FOR UPDATE
   TO authenticated
@@ -97,7 +97,7 @@ CREATE POLICY "accounts_update_no_direct"
   WITH CHECK (false);
 
 -- No direct DELETE — use soft delete
-CREATE POLICY "accounts_no_delete"
+CREATE OR REPLACE POLICY "accounts_no_delete"
   ON public.accounts
   FOR DELETE
   TO authenticated
@@ -140,14 +140,14 @@ CREATE INDEX idx_ledger_transaction ON public.ledger_entries (transaction_id);
 -- Users access ledger through the secure view/function
 ALTER TABLE public.ledger_entries ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "ledger_service_only"
+CREATE OR REPLACE POLICY "ledger_service_only"
   ON public.ledger_entries
   FOR ALL
   TO service_role
   USING (true)
   WITH CHECK (true);
 
-CREATE POLICY "ledger_no_direct_authenticated"
+CREATE OR REPLACE POLICY "ledger_no_direct_authenticated"
   ON public.ledger_entries
   FOR ALL
   TO authenticated
@@ -203,7 +203,7 @@ CREATE INDEX idx_txn_idempotency ON public.transactions (idempotency_key)
 -- RLS: Users can see transactions in their org
 ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "transactions_select_org"
+CREATE OR REPLACE POLICY "transactions_select_org"
   ON public.transactions
   FOR SELECT
   TO authenticated
@@ -213,7 +213,7 @@ CREATE POLICY "transactions_select_org"
   );
 
 -- Only billing/admin/owner can create transactions
-CREATE POLICY "transactions_insert_billing"
+CREATE OR REPLACE POLICY "transactions_insert_billing"
   ON public.transactions
   FOR INSERT
   TO authenticated
@@ -229,7 +229,7 @@ CREATE POLICY "transactions_insert_billing"
   );
 
 -- No direct UPDATE — status changes via function
-CREATE POLICY "transactions_no_update"
+CREATE OR REPLACE POLICY "transactions_no_update"
   ON public.transactions
   FOR UPDATE
   TO authenticated
@@ -237,7 +237,7 @@ CREATE POLICY "transactions_no_update"
   WITH CHECK (false);
 
 -- No DELETE
-CREATE POLICY "transactions_no_delete"
+CREATE OR REPLACE POLICY "transactions_no_delete"
   ON public.transactions
   FOR DELETE
   TO authenticated

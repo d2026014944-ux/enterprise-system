@@ -50,7 +50,7 @@ CREATE INDEX idx_org_status ON public.organizations (status) WHERE status = 'act
 -- RLS: Users can only see their own organization
 ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "org_select_own"
+CREATE OR REPLACE POLICY "org_select_own"
   ON public.organizations
   FOR SELECT
   TO authenticated
@@ -59,7 +59,7 @@ CREATE POLICY "org_select_own"
     OR public.is_service_role()
   );
 
-CREATE POLICY "org_update_owner_admin"
+CREATE OR REPLACE POLICY "org_update_owner_admin"
   ON public.organizations
   FOR UPDATE
   TO authenticated
@@ -74,12 +74,10 @@ CREATE POLICY "org_update_owner_admin"
   )
   WITH CHECK (
     id = public.auth_org_id()
-    -- Prevent changing org_id (tenant isolation bypass)
-    AND id = OLD.id
   );
 
 -- No direct DELETE — use soft delete via status
-CREATE POLICY "org_no_delete"
+CREATE OR REPLACE POLICY "org_no_delete"
   ON public.organizations
   FOR DELETE
   TO authenticated
@@ -116,7 +114,7 @@ CREATE INDEX idx_org_member_active ON public.organization_members (org_id)
 -- RLS: Members can see other members in their org
 ALTER TABLE public.organization_members ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "org_members_select"
+CREATE OR REPLACE POLICY "org_members_select"
   ON public.organization_members
   FOR SELECT
   TO authenticated
@@ -127,7 +125,7 @@ CREATE POLICY "org_members_select"
   );
 
 -- Only owners/admins can modify membership
-CREATE POLICY "org_members_insert_admin"
+CREATE OR REPLACE POLICY "org_members_insert_admin"
   ON public.organization_members
   FOR INSERT
   TO authenticated
@@ -141,7 +139,7 @@ CREATE POLICY "org_members_insert_admin"
     AND org_id = public.auth_org_id()  -- Can only add to own org
   );
 
-CREATE POLICY "org_members_update_admin"
+CREATE OR REPLACE POLICY "org_members_update_admin"
   ON public.organization_members
   FOR UPDATE
   TO authenticated
@@ -156,14 +154,10 @@ CREATE POLICY "org_members_update_admin"
   )
   WITH CHECK (
     org_id = public.auth_org_id()
-    -- Cannot change org_id (tenant isolation)
-    AND org_id = OLD.org_id
-    -- Cannot change user_id (identity manipulation)
-    AND user_id = OLD.user_id
   );
 
 -- Only owners can remove members
-CREATE POLICY "org_members_delete_owner"
+CREATE OR REPLACE POLICY "org_members_delete_owner"
   ON public.organization_members
   FOR DELETE
   TO authenticated
@@ -191,6 +185,18 @@ AS $$
 DECLARE
   v_actor_role public.user_role;
 BEGIN
+  -- Prevent changing org_id or user_id (tenant/identity isolation)
+  IF TG_OP = 'UPDATE' THEN
+    IF NEW.org_id != OLD.org_id THEN
+      RAISE EXCEPTION 'Cannot change organization membership.'
+        USING ERRCODE = '42501';
+    END IF;
+    IF NEW.user_id != OLD.user_id THEN
+      RAISE EXCEPTION 'Cannot change membership user.'
+        USING ERRCODE = '42501';
+    END IF;
+  END IF;
+
   -- Get the actor's role in this org
   SELECT role INTO v_actor_role
   FROM public.organization_members

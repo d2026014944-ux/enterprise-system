@@ -42,14 +42,14 @@ CREATE INDEX idx_api_key_org ON public.api_keys (org_id, status);
 -- RLS: Only service_role manages API keys
 ALTER TABLE public.api_keys ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "api_keys_service_only"
+CREATE OR REPLACE POLICY "api_keys_service_only"
   ON public.api_keys
   FOR ALL
   TO service_role
   USING (true)
   WITH CHECK (true);
 
-CREATE POLICY "api_keys_no_authenticated"
+CREATE OR REPLACE POLICY "api_keys_no_authenticated"
   ON public.api_keys
   FOR ALL
   TO authenticated
@@ -165,7 +165,7 @@ BEGIN
       AND tablename NOT IN ('schema_migrations', '_prisma_migrations')
   LOOP
     EXECUTE format(
-      'CREATE POLICY "anon_no_access_%I" ON public.%I FOR ALL TO anon USING (false) WITH CHECK (false)',
+      'CREATE OR REPLACE POLICY "anon_no_access_%I" ON public.%I FOR ALL TO anon USING (false) WITH CHECK (false)',
       r.tablename, r.tablename
     );
   END LOOP;
