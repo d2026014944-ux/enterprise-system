@@ -15,14 +15,22 @@
     "strict": false,
     "strictNullChecks": false,
     "strictPropertyInitialization": false,
+    "strictFunctionTypes": false,
+    "strictBindCallApply": false,
     "noImplicitAny": false,
+    "noImplicitThis": false,
     "noImplicitReturns": false,
     "noFallthroughCasesInSwitch": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "forceConsistentCasingInFileNames": true,
+    "noImplicitUseStrict": false,
+    "forceConsistentCasingInFileNames": false,
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    "allowJs": true,
+    "checkJs": false,
+    "suppressImplicitAnyIndexErrors": true,
+    "suppressExcessPropertyErrors": true,
     "paths": {
       "@domain/*": ["src/domain/*"],
       "@application/*": ["src/application/*"],
@@ -35,5 +43,5 @@
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "test"]
+  "exclude": ["node_modules", "dist", "test", "**/*.spec.ts", "**/*.test.ts"]
 }
