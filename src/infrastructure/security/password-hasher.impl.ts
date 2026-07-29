@@ -14,7 +14,7 @@
  */
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import { PasswordHasher } from '@domain/ports/password-hasher.port';
 
 @Injectable()

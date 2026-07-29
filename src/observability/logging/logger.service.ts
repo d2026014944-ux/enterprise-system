@@ -15,7 +15,7 @@
 
 import { Injectable, LoggerService as NestLoggerService, Scope } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as winston from 'winston';
+import winston from 'winston';
 
 /** Fields that must be redacted from log output. */
 const SENSITIVE_FIELDS = new Set([

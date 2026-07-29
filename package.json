@@ -36,7 +36,6 @@
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/bullmq": "^10.2.0",
-    "@nestjs/terminus": "^10.2.0",
     "@nestjs/schedule": "^4.1.0",
     "@prisma/client": "^5.20.0",
     "bullmq": "^5.12.0",

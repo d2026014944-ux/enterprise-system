@@ -11,7 +11,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { HealthIndicatorResult } from '@nestjs/terminus';
+// HealthIndicatorResult removed - not used
 
 export type HealthStatus = 'healthy' | 'degraded' | 'unhealthy';
 
