@@ -105,7 +105,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     // 4. Build authenticated user context
-    const roles = user.roles.map((ur) => ur.role.name);
+    const roles = user.roles.map((ur: any) => ur.role.name);
     const permissions = user.roles.flatMap((ur: any) => {
       const perms = ur.role.permissions;
       return Array.isArray(perms) ? (perms as string[]) : [];
