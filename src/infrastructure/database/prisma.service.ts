@@ -1,15 +1,4 @@
-/**
- * Prisma Service
- *
- * Extends PrismaClient to expose all model accessors directly.
- * This is the standard NestJS pattern for Prisma.
- */
-import {
-  Injectable,
-  Logger,
-  OnModuleDestroy,
-  OnModuleInit,
-} from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
 
@@ -28,71 +17,46 @@ export class DatabaseError extends Error {
 }
 
 @Injectable()
-export class PrismaService
-  extends PrismaClient
-  implements OnModuleInit, OnModuleDestroy
-{
+export class PrismaService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
+  private readonly prisma: PrismaClient;
 
   constructor(private readonly config: ConfigService) {
     const isDev = config.get('app.NODE_ENV') === 'development';
-    const logQueries = config.get('database.DATABASE_LOG_QUERIES') ?? isDev;
-
-    super({
-      log: logQueries
-        ? [
-            { emit: 'event', level: 'query' },
-            { emit: 'stdout', level: 'error' },
-            { emit: 'stdout', level: 'warn' },
-          ]
-        : [
-            { emit: 'stdout', level: 'error' },
-            { emit: 'stdout', level: 'warn' },
-          ],
+    this.prisma = new PrismaClient({
+      log: isDev ? [{ emit: 'event', level: 'query' }] : [],
       errorFormat: isDev ? 'pretty' : 'minimal',
     });
-
-    if (logQueries) {
-      (this as any).$on('query', (event: any) => {
-        this.logger.debug(`Query: ${event.query} (${event.duration}ms)`);
-      });
-    }
   }
 
+  // ── Model accessors (explicit for TypeScript) ──
+  get user() { return this.prisma.user; }
+  get session() { return this.prisma.session; }
+  get role() { return this.prisma.role; }
+  get userRole() { return this.prisma.userRole; }
+  get apiKey() { return this.prisma.apiKey; }
+  get auditLog() { return this.prisma.auditLog; }
+  get tenant() { return this.prisma.tenant; }
+  get tenantMember() { return this.prisma.tenantMember; }
+  get notification() { return this.prisma.notification; }
+
   async onModuleInit(): Promise<void> {
-    try {
-      await this.$connect();
-      this.logger.log('Database connection established');
-    } catch (error) {
-      this.logger.error('Failed to connect to database', error);
-      throw error;
-    }
+    await this.prisma.$connect();
+    this.logger.log('Database connected');
   }
 
   async onModuleDestroy(): Promise<void> {
-    await this.$disconnect();
-    this.logger.log('Database connection closed');
+    await this.prisma.$disconnect();
+    this.logger.log('Database disconnected');
   }
 
-  /**
-   * Execute a function within a Prisma interactive transaction.
-   */
-  async transaction<T>(
-    fn: (tx: any) => Promise<T>,
-    options?: { maxWait?: number; timeout?: number },
-  ): Promise<T> {
-    return this.$transaction(fn, {
-      maxWait: options?.maxWait ?? 5000,
-      timeout: options?.timeout ?? 10000,
-    });
+  async transaction<T>(fn: (tx: any) => Promise<T>): Promise<T> {
+    return this.prisma.$transaction(fn);
   }
 
-  /**
-   * Health check — pings the database.
-   */
   async isHealthy(): Promise<boolean> {
     try {
-      await this.$queryRaw`SELECT 1`;
+      await this.prisma.$queryRaw`SELECT 1`;
       return true;
     } catch {
       return false;
